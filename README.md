@@ -1,5 +1,5 @@
 # Soffritto
-Soffritto is a deep learning model that predicts 16-fraction replication timing (represented as a high-resolution Repli-Seq heatmap) using six histone ChIP-Seq signals, GC content, gene density, and 2-fraction Repli-Seq data as input. Soffritto is composed of an Long Short Term Memory (LSTM) module and a prediction module. Scripts are provided to both train the model from scratch and predict using trained models. Soffritto was evaluated on five cell lines: H1, H9, HCT116, mESC, mNPC using an intra-cell line and Leave-One-Cell-Line-Out (LOCLO) strategy. In the intra-cell line framework, chromosome 6 was left out for validation and chromosome 9 was used as the test set. In the LOCLO evaluation, Soffritto was iteratively trained on four cell lines, leaving chromosome 6 out for validation in the four cells and chromosome 9 out entirely to ensure an unseen chromosome in the left out cell line.
+Soffritto is a deep learning model that predicts 16-fraction replication timing (represented as a high-resolution Repli-Seq heatmap) using six histone ChIP-Seq signals, GC content, gene density, and 2-fraction Repli-Seq data as input. Soffritto is composed of an Long Short Term Memory (LSTM) module and a fully connected prediction module. Scripts are provided to both train the model from scratch and predict using trained models. Soffritto was evaluated on five cell lines: H1, H9, HCT116, mESC, mNPC using an intra-cell line and Leave-One-Cell-Line-Out (LOCLO) strategy. In the intra-cell line framework, chromosome 6 was left out for validation and chromosome 9 was used as the test set. In the LOCLO evaluation, Soffritto was iteratively trained on four cell lines, leaving chromosome 6 out for validation in the four cells and chromosome 9 out entirely to ensure an unseen chromosome in the left out cell line.
 
 ## Requirements
 To set up the conda environment to run Soffritto, run:
@@ -73,7 +73,7 @@ This table provides a list of command line flags:
 | --features | str  |  Paths to features datasets (space-separated) |
 | --labels | str |  Paths to 16-fraction RT data (space-separated and in the some order as features files)  |
 | --model_path  | str  |  Path for the trained model (saved as a .pth file)  |
-| --train_chromosomes  | int  | Training chromosomes as space-separated list of integers |
+| --train_chromosomes | int  | Training chromosomes as space-separated list of integers |
 | --val_chromosomes  | int  | Validation chromosome as integer |
 | --learning_rate  | float  | Learning rate for Adam optimizer |
 | --num_epochs | int  | Number of epochs |

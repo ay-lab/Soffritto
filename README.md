@@ -38,16 +38,9 @@ where ${CELL_LINE} is one of H1, H9, HCT116, mESC, and mNPC. Omit chromosomes 20
 
 To reproduce the LOCLO predictions, run:
 ```
-python -u predict_leave_one_cell_line_out.py \
---train_features_files ./data/H1_features.npz ./data/H9_features.npz ./data/HCT116_features.npz ./data/mESC_features.npz \
---test_features_file ./data/mNPC_features.npz \
---test_labels_file ./data/mNPC_labels.npz \
---model_path ./trained_models/mNPC_left_out_model.pth \
---hyperparameter_file ./trained_models/mNPC_left_out_model_hyperparameters.json \
---train_chromosomes 1 2 3 4 5 7 8 10 11 12 13 14 15 16 17 18 19 20 21 22 \
---test_chromosomes 9 \
---pred_file ./predictions/mNPC_chr9_pred_leave_one_cell_line_out.npy
+python predict_LOCLO_all_iterations.py
 ```
+predict_LOCLO_all_iterations.py iterates over all cell lines and predicts chromosome 9 for the left out cell line. The predictions are saved to file as ./predictions/{test_cell_line}_chr9_pred_leave_one_cell_line_out.npy
 
 ## Training
 Soffritto may also be trained from scratch. Training within cell lines and in LOCLO fashion are implemented by train_intra_cell_line.py and train_leave_one_cell_line_out.py respectively. Both files save the trained model to file.

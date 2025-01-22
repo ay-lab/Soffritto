@@ -52,6 +52,21 @@ This table provides a list of command line flags:
 | --num_layers  | int  | Number of LSTM layers |
 | --weight_decay | float  | L2 regularization coefficient |
 
+Example for training a model within H1:
+```
+python -u train_intra_cell_line.py \ 
+--features ./data/H1_features.npz \ 
+--labels ./data/H1_labels.npz \
+--model_path H1_model.pth \
+--train_chromosomes 1 2 3 4 5 7 8 10 11 12 13 14 15 16 17 18 19 20 21 22 \
+--val_chromosomes 6 \ 
+--learning_rate 0.001 \
+--num_epochs 100 \ 
+--batch_size 32 \ 
+--num_hiddens 64 \
+--weight_decay 0.01
+```
+
 ### train_leave_one_cell_line_out.py
 | Flag  | Type | Description |
 | ------------- | --- | ------------- |
@@ -66,3 +81,18 @@ This table provides a list of command line flags:
 | --num_hiddens  | int  | Hidden size of LSTM module |
 | --num_layers  | int  | Number of LSTM layers |
 | --weight_decay | float  | L2 regularization coefficient |
+
+Example for training a model that leaves H1 out:
+```
+python -u train_leave_one_cell_line_out.py \ 
+--features ./data/H9_features.npz ./data/HCT116_features.npz ./data/mESC_features.npz ./data/mNPC_features.npz \ 
+--labels ./data/H9_labels.npz ./data/HCT116_labels.npz ./data/mESC_labels.npz ./data/mNPC_labels.npz \
+--model_path H1_out_model.pth \
+--train_chromosomes 1 2 3 4 5 7 8 10 11 12 13 14 15 16 17 18 19 20 21 22 \
+--val_chromosomes 6 \ 
+--learning_rate 0.001 \
+--num_epochs 100 \ 
+--batch_size 32 \ 
+--num_hiddens 64 \
+--weight_decay 0.01
+```

@@ -19,7 +19,7 @@ data = features["1"]
 The feature and label files are in the formats {cell_line}_features.npz and {cell_line}_labels.npz respectively. Each chromosome's data for the features and labels is a 2D numpy array where the rows correspond to genomic bins of size 50kb. The coordinates for these bins are provided in the same order in the {cell_line}_coordinates.bedgraph files. The columns in the feature files correspond to the following features in this order: H3K27ac, H3K27me3, H3K36me3, H3K4me1, H3K4me3, H3K9me3, GC content, gene density, and 2-stage replication timing. The columns in the label files correspond to the 16 S phase fractions ordered from earliest (S1) to latest (S16). The labels are normalized such that each row sums to 1.
 
 ### trained_models
-This directory contains trained model files for both intra-cell line evaluation and LOCLO evaluation. The json files contain the hidden size and number of LSTM layers for each trained model. The trained models are saved in the PyTorch state dictionary format (.pth). The LOCLO model files are formatted as {cell_line}_left_out_model.pth to indicate that the model was trained on all cell lines except for {cell_line}. 
+This directory contains trained model files for both intra-cell line evaluation and LOCLO evaluation. The json files contain the hidden size and number of LSTM layers for each trained model. The trained models files are in the PyTorch state dictionary format (.pth). The LOCLO model files are formatted as {cell_line}_left_out_model.pth to indicate that the model was trained on all cell lines except for {cell_line}. 
 
 ## Prediction
 To reproduce the intra-cell line predictions in the paper, run the following command from the command line inside the Soffritto directory: 

@@ -34,7 +34,7 @@ python -u predict_intra_cell_line.py \
 --test_chromosomes 9 \
 --pred_file ./predictions/${CELL_LINE}_chr9_pred_intra_cell_line.npy
 ```
-where ${CELL_LINE} is one of H1, H9, HCT116, mESC, and mNPC. Omit chromosomes 20, 21, and 22 for the mouse cell lines (mESC and mNPC) in the --train_chromosomes flag. This will create a directory called predictions and output a predicted 16-fraction replication timing heatmap for chromosome 9. The predicted 
+where ${CELL_LINE} is one of H1, H9, HCT116, mESC, and mNPC. Omit chromosomes 20, 21, and 22 for the mouse cell lines (mESC and mNPC) in the --train_chromosomes flag. This will create a directory called predictions and output a predicted 16-fraction replication timing heatmap for chromosome 9. The predicted .npy file is a (bins x S phase fraction) matrix with rows normalized to sum to 1 just like the label files. 
 
 To reproduce the LOCLO predictions, run:
 ```

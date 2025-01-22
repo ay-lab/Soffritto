@@ -24,17 +24,9 @@ This directory contains trained model files for both intra-cell line evaluation 
 ## Prediction
 To reproduce the intra-cell line predictions in the paper, run the following command from the command line inside the Soffritto directory: 
 ```
-python -u predict_intra_cell_line.py \
---train_features_file ./data/${CELL_LINE}_features.npz \
---test_features_file ./data/${CELL_LINE}_features.npz \
---test_labels_file ./data/${CELL_LINE}_labels.npz \
---model_path ./trained_models/${CELL_LINE}_intra_cell_line_model.pth \
---hyperparameter_file ./trained_models/${CELL_LINE}_left_out_model_hyperparameters.json \
---train_chromosomes 1 2 3 4 5 7 8 10 11 12 13 14 15 16 17 18 19 20 21 22 \
---test_chromosomes 9 \
---pred_file ./predictions/${CELL_LINE}_chr9_pred_intra_cell_line.npy
+python predict_intra_cell_line_all.py
 ```
-where ${CELL_LINE} is one of H1, H9, HCT116, mESC, and mNPC. Omit chromosomes 20, 21, and 22 for the mouse cell lines (mESC and mNPC) in the --train_chromosomes flag. This will create a directory called predictions and output a predicted 16-fraction replication timing heatmap for chromosome 9. The predicted .npy file is a (bins x S phase fraction) matrix with rows normalized to sum to 1 just like the label files. 
+predict_intra_cell_line_all.py predicts for all five cell lines. It creates a directory called predictions and outputs a predicted 16-fraction replication timing heatmap for chromosome 9 for each cell line with path ./predictions/{cell_line}_chr9_pred_intra_cell_line.npy. The predicted .npy file is a (bins x S phase fraction) matrix with rows normalized to sum to 1 just like the label files. 
 
 To reproduce the LOCLO predictions, run:
 ```

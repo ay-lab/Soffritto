@@ -7,9 +7,9 @@ cell_lines = ['H1', 'H9', 'HCT116', 'mESC', 'mNPC']
 
 for cell_line in cell_lines:
     if 'm' in cell_line:
-        train_chroms = (' ').join([str(i) for i in range(1,20) if i != 6])
+        train_chroms = (' ').join([str(i) for i in range(1,20) if i != 6 and i != 9])
     else:
-        train_chroms = (' ').join([str(i) for i in range(1,23) if i != 6])
+        train_chroms = (' ').join([str(i) for i in range(1,23) if i != 6 and i != 9])
     command = f"python -u predict_intra_cell_line.py " \
               f"--train_features_file ./data/{cell_line}_features.npz " \
               f"--test_features_file ./data/{cell_line}_features.npz " \

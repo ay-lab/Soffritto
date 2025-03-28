@@ -26,6 +26,9 @@ The feature and label files are in the formats {cell_line}_features.npz and {cel
 ### trained_models
 This directory contains trained model files for both intra-cell line evaluation and LOCLO evaluation. The json files contain the hidden size and number of LSTM layers for each trained model. The trained models files are in the PyTorch state dictionary format (.pth). The LOCLO model files are formatted as {cell_line}_left_out_model.pth to indicate that the model was trained on all cell lines except for {cell_line}. 
 
+### trained_models
+Contains scripts for interpreting 16-fraction RT predictions.
+
 ## Prediction
 To reproduce the intra-cell line predictions in the paper, run the following command from the command line inside the Soffritto directory: 
 ```
@@ -38,6 +41,8 @@ To reproduce the LOCLO predictions, run:
 python predict_LOCLO_all_iterations.py
 ```
 predict_LOCLO_all_iterations.py iterates over all cell lines and predicts chromosome 9 for the left out cell line. The predictions are saved to file as ./predictions/{test_cell_line}_chr9_pred_leave_one_cell_line_out.npy
+
+To visualize the predicted RT profiles vs. observed RT profiles, we provide a script called RT_heatmaps.ipynb under /notebooks/ that takes a .npz labels file and a predicted .npy file as input and generates vertically stacked 16-fraction RT heatmaps.
 
 ## Training
 Soffritto may also be trained from scratch. Training within cell lines and in LOCLO fashion are implemented by train_intra_cell_line.py and train_leave_one_cell_line_out.py respectively. Both files save the trained model to file.

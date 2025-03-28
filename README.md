@@ -1,9 +1,14 @@
 # Soffritto
+![Figure_1](https://github.com/user-attachments/assets/c7aefd3b-bbc4-44fd-9179-33a13ed17c11)
+
 Soffritto is a deep learning model that predicts 16-fraction replication timing (represented as a high-resolution Repli-Seq heatmap) using six histone ChIP-Seq signals, GC content, gene density, and 2-fraction Repli-Seq data as input. Soffritto is composed of an Long Short Term Memory (LSTM) module and a fully connected prediction module. Scripts are provided to both train the model from scratch and predict using trained models. Soffritto was evaluated on five cell lines: H1, H9, HCT116, mESC, mNPC using an intra-cell line and Leave-One-Cell-Line-Out (LOCLO) strategy. In the intra-cell line framework, chromosome 6 was left out for validation and chromosome 9 was used as the test set. In the LOCLO evaluation, Soffritto was iteratively trained on four cell lines, leaving chromosome 6 out for validation in the four cells and chromosome 9 out entirely to ensure an unseen chromosome in the left out cell line.
 
 ## Requirements
+Soffritto requires python=3.9 and pytorch=2.0.1, preferably with CUDA support.
+
 To set up the conda environment to run Soffritto, run:
 ```
+git clone https://github.com/ay-lab/Soffritto
 cd Soffritto
 conda env create -f environment.yml
 ```
@@ -16,7 +21,7 @@ import numpy as np
 features = np.load("H1_features.npz")
 data = features["1"]
 ```
-The feature and label files are in the formats {cell_line}_features.npz and {cell_line}_labels.npz respectively. Each chromosome's data for the features and labels is a 2D numpy array where the rows correspond to genomic bins of size 50kb. The coordinates for these bins are provided in the same order in the {cell_line}_coordinates.bedgraph files. The columns in the feature files correspond to the following features in this order: H3K27ac, H3K27me3, H3K36me3, H3K4me1, H3K4me3, H3K9me3, GC content, gene density, and 2-stage replication timing. The columns in the label files correspond to the 16 S phase fractions ordered from earliest (S1) to latest (S16). The labels are normalized such that each row sums to 1.
+The feature and label files are in the formats {cell_line}_features.npz and {cell_line}_labels.npz respectively. Each chromosome's data for the features and labels is a 2D numpy array where the rows correspond to genomic bins of size 50kb. The coordinates for these bins are provided in the same order in the /bin_coordinates/{cell_line}_{chromosome}.bed files. The columns in the feature files correspond to the following features in this order: H3K27ac, H3K27me3, H3K36me3, H3K4me1, H3K4me3, H3K9me3, GC content, gene density, and 2-stage replication timing. The columns in the label files correspond to the 16 S phase fractions ordered from earliest (S1) to latest (S16). The labels are normalized such that each row sums to 1.
 
 ### trained_models
 This directory contains trained model files for both intra-cell line evaluation and LOCLO evaluation. The json files contain the hidden size and number of LSTM layers for each trained model. The trained models files are in the PyTorch state dictionary format (.pth). The LOCLO model files are formatted as {cell_line}_left_out_model.pth to indicate that the model was trained on all cell lines except for {cell_line}. 

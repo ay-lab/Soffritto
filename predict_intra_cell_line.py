@@ -35,30 +35,45 @@ class Soffritto(nn.Module):
         self.hidden_size = hidden_size
         self.num_layers = num_layers
         
-        # LSTM module
+        # Recurrent layer
         self.lstm = nn.LSTM(input_size, hidden_size, num_layers, bidirectional=True)
         
         # Fully connected layer
         self.fc = nn.Linear(2*hidden_size, output_size)
         
-        # LogSoftmax layer
+        # Softmax layer
         self.log_softmax = nn.LogSoftmax(dim=-1)
         
+        # Hidden state
+        self.hidden = None
+        
     def forward(self, x):
-        # Initializes hidden state with zeros
-        h0 = torch.zeros(2*self.num_layers, self.hidden_size).to(x.device)
-        c0 = torch.zeros(2*self.num_layers, self.hidden_size).to(x.device)
+        # If hidden state is None, initialize it
+        if self.hidden is None:
+            self.hidden = self.init_hidden(x.device)
         
-        # LSTM forward propagation
-        out, _ = self.lstm(x, (h0, c0)) 
+        # Forward propagate LSTM
+        out, self.hidden = self.lstm(x, self.hidden)
         
-        # Applies fully connected layer to hidden state of last step
+        # Detach hidden state to prevent backprop through entire history
+        self.hidden = (self.hidden[0].detach(), self.hidden[1].detach())
+        
+        # Decode the hidden state of the last time step
         out = self.fc(out)
         
-        # Applies log softmax for KLDivLoss
+        # Apply log softmax for KLDivLoss
         out = self.log_softmax(out)
         
         return out
+    
+    def init_hidden(self, device):
+        """Initialize hidden and cell states."""
+        return (torch.zeros(2 * self.num_layers, self.hidden_size, device=device),
+                torch.zeros(2 * self.num_layers, self.hidden_size, device=device))
+
+    def reset_hidden(self, device):
+        """Manually reset hidden state (e.g., at epoch start or chromosome change)."""
+        self.hidden = self.init_hidden(device)
     
 # Define model parameters
 with open(args.hyperparameter_file, "r") as json_file:

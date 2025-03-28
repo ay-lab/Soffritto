@@ -5,11 +5,13 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader, TensorDataset
-from utils import load_data
+from utils import load_data_intra_cell_line_train
 import argparse
 import numpy as np
 from torch.nn.functional import kl_div
 import os
+import json
+import random
 
 torch.manual_seed(1)
 
@@ -25,9 +27,10 @@ parser.add_argument('--batch_size', type=int)
 parser.add_argument('--num_hiddens', type=int, help="Hidden size of LSTM module")
 parser.add_argument('--num_layers', type=int, help="Number of LSTM layers")
 parser.add_argument('--weight_decay', type=float, help="L2 regularization coefficient")
+parser.add_argument('--hyperparameter_file', help="Path to json file containing num_hiddens and num_layers for trained model")
 args = parser.parse_args()
 
-X_train, y_train, X_val, y_val = load_data(args.features, 
+X_train, y_train, X_val, y_val = load_data_intra_cell_line_train(args.features, 
                                              args.labels, 
                                              args.train_chromosomes, 
                                              args.val_chromosomes)
@@ -35,40 +38,54 @@ X_train, y_train, X_val, y_val = load_data(args.features,
 # Creates directory for saved model if it doesn't already exist
 os.makedirs(f"{os.path.dirname(args.model_path)}", exist_ok=True)
 
-# Model definition
 class Soffritto(nn.Module):
     def __init__(self, input_size, hidden_size, num_layers, output_size):
         super(Soffritto, self).__init__()
         self.hidden_size = hidden_size
         self.num_layers = num_layers
         
-        # LSTM module
+        # Recurrent layer
         self.lstm = nn.LSTM(input_size, hidden_size, num_layers, bidirectional=True)
         
         # Fully connected layer
         self.fc = nn.Linear(2*hidden_size, output_size)
         
-        # LogSoftmax layer
+        # Softmax layer
         self.log_softmax = nn.LogSoftmax(dim=-1)
         
+        # Hidden state
+        self.hidden = None
+        
     def forward(self, x):
-        # Initializes hidden state with zeros
-        h0 = torch.zeros(2*self.num_layers, self.hidden_size).to(x.device)
-        c0 = torch.zeros(2*self.num_layers, self.hidden_size).to(x.device)
+        # If hidden state is None, initialize it
+        if self.hidden is None:
+            self.hidden = self.init_hidden(x.device)
         
-        # LSTM forward propagation
-        out, _ = self.lstm(x, (h0, c0)) 
+        # Forward propagate LSTM
+        out, self.hidden = self.lstm(x, self.hidden)
         
-        # Applies fully connected layer to hidden state of last step
+        # Detach hidden state to prevent backprop through entire history
+        self.hidden = (self.hidden[0].detach(), self.hidden[1].detach())
+        
+        # Decode the hidden state of the last time step
         out = self.fc(out)
         
-        # Applies log softmax for KLDivLoss
+        # Apply log softmax for KLDivLoss
         out = self.log_softmax(out)
         
         return out
+    
+    def init_hidden(self, device):
+        # Initialize hidden and cell states.
+        return (torch.zeros(2 * self.num_layers, self.hidden_size, device=device),
+                torch.zeros(2 * self.num_layers, self.hidden_size, device=device))
+
+    def reset_hidden(self, device):
+        # Manually reset hidden state
+        self.hidden = self.init_hidden(device)
 
 # Define hyperparameters
-input_size = X_train.size(1)  # Assuming X_train is of shape (seq_length, num_features)
+input_size = X_train[next(iter(X_train))].size(-1)
 hidden_size = args.num_hiddens
 num_layers = args.num_layers
 output_size = 16  # 16 fractions
@@ -85,12 +102,13 @@ model = Soffritto(input_size, hidden_size, num_layers, output_size).to(device)
 criterion = nn.KLDivLoss(reduction = 'batchmean')
 optimizer = optim.AdamW(model.parameters(), lr=learning_rate, weight_decay=args.weight_decay) # considered more stable and better for L2 regularization than Adam
 
-# Convert data to DataLoader
-train_data = TensorDataset(X_train, y_train)
-train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=False)
-
-test_data = TensorDataset(X_val, y_val)
-test_loader = DataLoader(test_data, batch_size=batch_size)
+# Create dataloaders. Data is loaded by each chromosome at a time
+dataloaders = {}
+for chrom in X_train.keys():
+    feature_tensor = X_train[chrom] 
+    label_tensor = y_train[chrom]
+    dataset = TensorDataset(feature_tensor, label_tensor)
+    dataloaders[chrom] = DataLoader(dataset, batch_size=batch_size, shuffle=False)
 
 # Training loop
 best_val_loss = float('inf')
@@ -100,18 +118,23 @@ if torch.cuda.is_available():
 else:
     print("Training on cpu")
 for epoch in range(num_epochs):
-    model.train()
-    for inputs, labels in train_loader:
-        inputs, labels = inputs.to(device), labels.to(device)
+    chrom_order = list(X_train.keys())  # Shuffle chromosome order
+    random.shuffle(chrom_order)
+    for chrom in chrom_order:
+        model.reset_hidden(device=device)
+        model.train()
+        for batch in dataloaders[chrom]:
+            inputs, labels = batch
+            inputs, labels = inputs.to(device), labels.to(device)
             
-        # Forward pass
-        outputs = model(inputs)
-        loss = criterion(outputs, labels.float())
-        
-        # Backward pass and optimization
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
+            # Forward pass
+            outputs = model(inputs)
+            loss = criterion(outputs, labels.float())
+
+            # Backward pass and optimization
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
     
     model.eval()
     with torch.no_grad():
@@ -123,3 +146,10 @@ for epoch in range(num_epochs):
         best_val_loss = val_loss.item()
         # Save best model
         torch.save(model.state_dict(), args.model_path)
+
+# Save hyperparameter configuration file
+hyper_dict = dict()
+hyper_dict['hidden_size'] = hidden_size
+hyper_dict['num_layers'] = num_layers
+with open(args.hyperparameter_file, 'w') as json_file:
+    json.dump(hyper_dict, json_file, indent=4)
